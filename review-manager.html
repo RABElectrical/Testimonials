@@ -127,10 +127,6 @@
 
         setLogLevel('Debug');
 
-        const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
-        const __firebase_config = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
-        const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
-
         const reviewForm = document.getElementById('review-form');
         const reviewsList = document.getElementById('reviews-list');
         const messageBox = document.getElementById('message-box');
@@ -165,20 +161,20 @@
 
         async function initFirebase() {
             try {
-                if (!__firebase_config) {
-                    throw new Error("Firebase config is missing.");
-                }
-                const firebaseConfig = JSON.parse(__firebase_config);
-                // Check if the parsed object has a projectId
+                // Correctly access the global variables
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
                 if (!firebaseConfig.projectId) {
-                    throw new Error("Invalid Firebase config. 'projectId' is missing.");
+                    throw new Error("Firebase config 'projectId' is missing.");
                 }
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                if (__initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
                 }
@@ -200,7 +196,8 @@
 
         function listenForReviews() {
             try {
-                const reviewsRef = collection(db, `artifacts/${__app_id}/public/data/reviews`);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const reviewsRef = collection(db, `artifacts/${appId}/public/data/reviews`);
                 
                 onSnapshot(reviewsRef, (snapshot) => {
                     reviewsList.innerHTML = '';
@@ -263,7 +260,8 @@
         confirmDeleteBtn.addEventListener('click', async () => {
             if (docToDelete) {
                 try {
-                    await deleteDoc(doc(db, `artifacts/${__app_id}/public/data/reviews`, docToDelete));
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/reviews`, docToDelete));
                     showMessage("Review deleted successfully!");
                 } catch (e) {
                     console.error("Error deleting document: ", e);
@@ -299,7 +297,8 @@
             }
 
             try {
-                const reviewsRef = collection(db, `artifacts/${__app_id}/public/data/reviews`);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const reviewsRef = collection(db, `artifacts/${appId}/public/data/reviews`);
                 await addDoc(reviewsRef, {
                     title,
                     name,
