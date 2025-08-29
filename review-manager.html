@@ -3,300 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Testimonials - Live</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Review Input Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Imports the Poppins font from Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
-        
-        /* Global Styles */
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
-            color: #333333;
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
         }
-        
-        /* Main Content Container (for social/contact pages) */
-        .review-funnel-container, .contact-container {
-            background: #ffffff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            max-width: 450px;
-            text-align: center;
-            margin: 2rem auto;
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
         }
-        
-        /* Logo Styling */
-        .review-funnel-logo {
-            max-width: 300px;
-            height: auto;
-            margin-bottom: -3rem;
-        }
-        
-        /* Headings and Paragraphs */
-        .review-funnel-heading {
-            color: #15316f;
-            font-size: 1.8rem;
-            text-align: center;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 0.5rem;
-            margin-top: 2rem;
-            margin-bottom: 0.5rem; /* Reduced margin */
-        }
-        
-        .intro-sentence {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #15316f;
-            margin-bottom: .5rem;
-        }
-        
-        /* Horizontal Rule for separation */
-        hr {
-            border: 0;
-            height: 1px;
-            background: #e9e9e9;
-            margin: 1.5rem auto;
-            width: 80%;
-        }
-        
-        /* Button Link Base Styles */
-        .review-links a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 1rem auto;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 700;
-            color: white;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        
-        .review-links a:hover {
-            transform: translateY(-2px);
-        }
-        
-        .review-links a i {
-            margin-right: 0.75rem;
-            font-size: 1.3rem;
-        }
-        
-        /* Main Contact Us Button (Bottom) */
-        .review-links a.main-contact-button {
-            background-color: #FF8C00; /* Orange color */
-            max-width: 300px;
-            padding: 0.8rem 1rem;
-            font-size: 1.1rem;
-        }
-        
-        .review-links a.main-contact-button:hover {
-            background-color: #CC7000; /* Darker orange on hover */
-        }
-
-        /* Testimonials Card-Specific Styles */
-        .testimonial-card {
-            background: #ffffff;
+        .form-card, .list-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
-            text-align: left;
         }
-        
-        .testimonial-card h3 {
-            color: #15316f;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 0.5rem;
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
         }
-        
-        .testimonial-card p.review-text {
-            color: #555;
-            font-style: italic;
-            margin-bottom: 1rem;
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
-        
-        .testimonial-card .review-meta {
-            font-size: 0.9rem;
-            color: #888;
-        }
-        
         .star-rating {
-            color: gold;
+            display: inline-block;
+            font-size: 2rem;
+            color: #f6ad55;
+            cursor: pointer;
         }
-
-        /* Styling for the new, smaller contact button */
-        .subtle-contact-button {
-            background-color: #FF8C00; /* Orange color */
-            margin-top: 0;
-            margin-bottom: 0;
-            padding: 0.2rem 0.4rem; /* Controls the blue area around the text */
-            max-width: 150px; /* Controls the overall width of the button */
-            font-size: 0.9rem; /* Controls the size of the text */
+        .star-rating .star {
+            transition: color 0.2s;
         }
-
-        .subtle-contact-button:hover {
-            background-color: #CC7000; /* Darker orange on hover */
+        .star-rating .star.filled {
+            color: #f9a825;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center py-8">
-    <div class="review-funnel-container review-funnel-container--testimonials">
-        <!-- Logo at the top -->
-        <img src="LOGO.png" alt="Electrical Maintenance Logo" class="review-funnel-logo">
-        <h1 class="review-funnel-heading">Customer Testimonials</h1>
-        
-        <!-- New smaller contact button -->
-        <div class="review-links" style="margin-top: 1rem; margin-bottom: 1rem;">
-            <a href="contact.html" class="subtle-contact-button">
-                <i class="fas fa-phone"></i> Contact Us
-            </a>
-        </div>
-        
-        <hr>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container bg-white p-8 rounded-xl shadow-lg m-4 w-full">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Review Data Entry</h1>
+        <p class="text-center text-gray-600 mb-8">Manually add reviews from other platforms here.</p>
 
-        <!-- Overall Rating Section -->
-        <div id="overall-rating-container" class="text-center" style="margin-top: -.5rem; margin-bottom: 0;">
-            <h2 style="font-size:1.4rem; color:#15316f; font-weight:700; margin-bottom: 0.5rem;">Overall Rating</h2>
-            <div id="overall-rating" style="font-size:2.5rem; font-weight:700; color:#15316f;">...</div>
-            <div id="overall-stars" class="star-rating" style="font-size:1.5rem;">...</div>
-            <p id="total-reviews" style="font-size:0.9rem; color:#888;">...</p>
+        <!-- Review Submission Form -->
+        <div class="form-card">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Add a New Review</h2>
+            <form id="review-form" class="space-y-4">
+                <div>
+                    <label for="review-title" class="block text-sm font-medium text-gray-700">Review Title</label>
+                    <input type="text" id="review-title" placeholder="e.g., Flawless Service" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                </div>
+                <div>
+                    <label for="reviewer-name" class="block text-sm font-medium text-gray-700">Reviewer Name</label>
+                    <input type="text" id="reviewer-name" placeholder="John S." required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                </div>
+                <div>
+                    <label for="review-text" class="block text-sm font-medium text-gray-700">Review Text</label>
+                    <textarea id="review-text" rows="4" required placeholder="Paste the full review here..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border"></textarea>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+                    <div class="w-full sm:w-1/2">
+                        <label for="review-platform" class="block text-sm font-medium text-gray-700">Source Platform</label>
+                        <select id="review-platform" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                            <option value="">Select a platform</option>
+                            <option value="Google">Google</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="TrustATrader">TrustATrader</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-1/2">
+                        <label for="review-rating" class="block text-sm font-medium text-gray-700">Star Rating (1-5)</label>
+                        <input type="number" id="review-rating" min="1" max="5" required placeholder="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Add Review
+                </button>
+                <div id="message-box" class="mt-4 p-3 rounded-md text-sm text-center hidden"></div>
+            </form>
         </div>
 
-        <!-- Reviews Section -->
-        <div id="reviews-container">
-            <!-- Reviews will be dynamically added here by script -->
-            <p style="text-align: center; color: #888;">Loading reviews...</p>
-        </div>
-        
-        <hr>
-
-        <!-- Contact Us Button -->
-        <div class="review-links">
-            <a href="contact.html" class="main-contact-button">
-                <i class="fas fa-phone"></i> Contact Us
-            </a>
+        <!-- Submitted Reviews List -->
+        <div class="list-card">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">All Submitted Reviews</h2>
+            <div id="reviews-list" class="space-y-6">
+                <!-- Reviews will be dynamically inserted here -->
+            </div>
         </div>
     </div>
 
+    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Set Firebase log level for debugging
-        setLogLevel('debug');
+        setLogLevel('Debug');
 
-        // Global variables for Firebase configuration
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+        const __firebase_config = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
+        const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
 
-        // UI elements
-        const reviewsContainer = document.getElementById('reviews-container');
-        const overallRatingDiv = document.getElementById('overall-rating');
-        const overallStarsDiv = document.getElementById('overall-stars');
-        const totalReviewsP = document.getElementById('total-reviews');
+        const reviewForm = document.getElementById('review-form');
+        const reviewsList = document.getElementById('reviews-list');
+        const messageBox = document.getElementById('message-box');
 
         let db;
         let auth;
+        let userId;
+
+        function showMessage(text, isError = false) {
+            messageBox.textContent = text;
+            messageBox.className = `mt-4 p-3 rounded-md text-sm text-center block ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = 'hidden';
+            }, 3000);
+        }
         
+        // Function to create star icons
         function createStarIcons(rating) {
-            // Function to create star icons for a given rating
-            const roundedRating = Math.round(rating);
+            const fullStar = '★';
+            const emptyStar = '☆';
             let stars = '';
             for (let i = 1; i <= 5; i++) {
-                stars += (i <= roundedRating) ? '★' : '☆';
+                stars += (i <= rating) ? fullStar : emptyStar;
             }
             return stars;
         }
 
-        async function initializeAppAndAuth() {
+        async function initFirebase() {
             try {
-                // Initialize Firebase
+                if (!__firebase_config) {
+                    throw new Error("Firebase config is missing.");
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-
-                // Sign in with custom token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+                
+                if (__initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-
+                
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        console.log("User authenticated:", user.uid);
-                        // Set up real-time listener for reviews
-                        const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
-                        
-                        onSnapshot(
-                            query(reviewsCollectionRef, orderBy('timestamp', 'desc')), 
-                            (snapshot) => {
-                                reviewsContainer.innerHTML = ''; // Clear previous content
-                                let totalRating = 0;
-                                const totalReviews = snapshot.size;
-
-                                if (snapshot.empty) {
-                                    reviewsContainer.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet.</p>';
-                                    overallRatingDiv.textContent = 'N/A';
-                                    overallStarsDiv.textContent = '☆☆☆☆☆';
-                                    totalReviewsP.textContent = `(0 reviews)`;
-                                } else {
-                                    snapshot.docs.forEach(doc => {
-                                        const reviewData = doc.data();
-                                        // Check for valid review data before rendering
-                                        if (reviewData && reviewData.name && reviewData.text) {
-                                            totalRating += reviewData.rating;
-                                            const reviewCard = document.createElement('div');
-                                            reviewCard.className = "testimonial-card";
-                                            reviewCard.innerHTML = `
-                                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                                                    <span style="font-weight:700; color:#15316f;">${reviewData.name}</span>
-                                                    <div class="star-rating" style="font-size:1.2rem;">
-                                                        ${createStarIcons(reviewData.rating)}
-                                                    </div>
-                                                </div>
-                                                <p class="review-text">${reviewData.text}</p>
-                                                <div class="review-meta">
-                                                    Source: ${reviewData.platform}
-                                                </div>
-                                            `;
-                                            reviewsContainer.appendChild(reviewCard);
-                                        }
-                                    });
-
-                                    // Calculate and update overall rating
-                                    const averageRating = totalRating / totalReviews;
-                                    overallRatingDiv.textContent = averageRating.toFixed(1);
-                                    overallStarsDiv.textContent = createStarIcons(averageRating);
-                                    totalReviewsP.textContent = `(${totalReviews} reviews)`;
-                                }
-                            },
-                            (error) => {
-                                console.error("Firestore onSnapshot error:", error);
-                                reviewsContainer.innerHTML = '<p style="text-align: center; color: red;">Error loading reviews. Please check the console for details.</p>';
-                            }
-                        );
+                        userId = user.uid;
+                        listenForReviews();
                     } else {
-                        console.error("Authentication failed. Please check your token or configuration.");
-                        reviewsContainer.innerHTML = '<p style="text-align: center; color: red;">Error: Failed to authenticate. Please try refreshing the page.</p>';
+                        console.log("User is signed out.");
+                        reviewsList.innerHTML = `<p class="text-center text-red-500">Authentication failed. Please refresh the page.</p>`;
                     }
                 });
-            } catch (error) {
-                console.error("Firebase Initialization Error:", error);
-                reviewsContainer.innerHTML = `<p style="text-align: center; color: red;">Error: ${error.message}. Check your console.</p>`;
+            } catch (e) {
+                console.error("Error initializing Firebase:", e);
+                reviewsList.innerHTML = `<p class="text-center text-red-500">Failed to load the application. Please check the console for more details.</p>`;
             }
         }
-        
-        initializeAppAndAuth();
+
+        function listenForReviews() {
+            try {
+                const reviewsRef = collection(db, `artifacts/${__app_id}/public/data/reviews`);
+                
+                onSnapshot(reviewsRef, (snapshot) => {
+                    reviewsList.innerHTML = '';
+                    const reviews = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        reviews.push({ id: doc.id, ...data });
+                    });
+                    
+                    reviews.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+
+                    if (reviews.length === 0) {
+                        reviewsList.innerHTML = `<p class="text-center text-gray-500">No reviews have been added yet.</p>`;
+                    } else {
+                        reviews.forEach(review => {
+                            const reviewElement = document.createElement('div');
+                            reviewElement.className = 'bg-gray-50 p-6 rounded-lg shadow-sm';
+                            const date = review.createdAt?.toDate() ? new Date(review.createdAt.toDate()).toLocaleDateString() : 'N/A';
+                            
+                            const stars = review.rating ? `
+                                <div class="flex items-center text-yellow-400 mb-2 text-xl">
+                                    ${createStarIcons(review.rating)}
+                                </div>
+                            ` : '';
+                            const platform = review.platform ? `<p class="text-xs text-gray-400">Source: ${review.platform}</p>` : '';
+
+                            reviewElement.innerHTML = `
+                                ${stars}
+                                <h3 class="font-semibold text-xl text-gray-800">${review.title || 'Untitled Review'}</h3>
+                                <p class="text-gray-600 mt-2">${review.text}</p>
+                                <div class="mt-4 text-sm text-gray-500">
+                                    <p>— ${review.name || 'Anonymous'}</p>
+                                    <p class="text-xs">on ${date}</p>
+                                    ${platform}
+                                </div>
+                            `;
+                            reviewsList.appendChild(reviewElement);
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Error listening for reviews:", e);
+                reviewsList.innerHTML = `<p class="text-center text-red-500">Error loading reviews. Please try again later.</p>`;
+            }
+        }
+
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('review-title').value.trim();
+            const name = document.getElementById('reviewer-name').value.trim();
+            const text = document.getElementById('review-text').value.trim();
+            const platform = document.getElementById('review-platform').value;
+            const rating = parseInt(document.getElementById('review-rating').value, 10);
+            
+            if (!title || !name || !text || !platform || !rating) {
+                showMessage("Please fill out all fields.", true);
+                return;
+            }
+
+            if (rating < 1 || rating > 5) {
+                showMessage("Rating must be between 1 and 5.", true);
+                return;
+            }
+
+            try {
+                const reviewsRef = collection(db, `artifacts/${__app_id}/public/data/reviews`);
+                await addDoc(reviewsRef, {
+                    title,
+                    name,
+                    text,
+                    platform,
+                    rating,
+                    userId,
+                    createdAt: serverTimestamp()
+                });
+
+                showMessage("Review submitted successfully!");
+                reviewForm.reset();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage("Failed to submit review. Please try again.", true);
+            }
+        });
+
+        initFirebase();
     </script>
 </body>
 </html>
