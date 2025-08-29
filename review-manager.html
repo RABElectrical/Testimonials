@@ -263,7 +263,7 @@
         <h2 class="review-funnel-heading">Existing Reviews</h2>
         <div id="reviews-list">
             <!-- Reviews will be dynamically loaded here -->
-            <p style="text-align: center; color: #888;">Loading reviews...</p>
+            <p style="text-align: center; color: #888;">Initializing...</p>
         </div>
     </div>
 
@@ -280,15 +280,13 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
         // UI Elements
         const form = document.getElementById('review-form');
         const statusMessage = document.getElementById('status-message');
         const reviewsList = document.getElementById('reviews-list');
+
+        let db;
+        let auth;
 
         function showStatus(message, isSuccess) {
             statusMessage.textContent = message;
@@ -313,79 +311,106 @@
             }
         }
         
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log("User authenticated:", user.uid);
-                
-                // Set up real-time listener for reviews
-                const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
-                onSnapshot(query(reviewsCollectionRef), (snapshot) => {
-                    reviewsList.innerHTML = '';
-                    if (snapshot.empty) {
-                        reviewsList.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet. Be the first to add one!</p>';
-                    } else {
-                        snapshot.docs.forEach(doc => {
-                            const reviewData = doc.data();
-                            const reviewCard = document.createElement('div');
-                            reviewCard.className = "review-card";
-                            reviewCard.innerHTML = `
-                                <button class="delete-button" data-id="${doc.id}"><i class="fas fa-trash-alt"></i></button>
-                                <div class="review-header">
-                                    <span class="reviewer-name">${reviewData.name}</span>
-                                    <div class="star-rating">${createStarIcons(reviewData.rating)}</div>
-                                </div>
-                                <p class="review-text">${reviewData.text}</p>
-                                <div class="review-meta">
-                                    Source: ${reviewData.platform}
-                                </div>
-                            `;
-                            reviewsList.appendChild(reviewCard);
-                        });
-                        
-                        // Attach event listeners to the new delete buttons
-                        reviewsList.querySelectorAll('.delete-button').forEach(button => {
-                            button.addEventListener('click', () => {
-                                const reviewId = button.getAttribute('data-id');
-                                deleteReview(reviewId);
-                            });
-                        });
-                    }
-                });
+        async function initializeAppAndAuth() {
+            try {
+                // Initialize Firebase
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-                // Add new review submission logic
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    const name = document.getElementById('reviewer-name').value;
-                    const platform = document.getElementById('platform').value;
-                    const rating = parseInt(document.querySelector('input[name="rating"]:checked').value);
-                    const text = document.getElementById('review-text').value;
-
-                    try {
-                        await addDoc(collection(db, `/artifacts/${appId}/public/data/reviews`), {
-                            name: name,
-                            platform: platform,
-                            rating: rating,
-                            text: text,
-                            timestamp: serverTimestamp()
-                        });
-                        showStatus("Review added successfully!", true);
-                        form.reset();
-                    } catch (error) {
-                        console.error("Error adding review: ", error);
-                        showStatus("Error adding review. Please try again.", false);
-                    }
-                });
-
-            } else {
-                console.log("No user authenticated. Signing in anonymously...");
-                try {
+                // Sign in with custom token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
                     await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Anonymous sign-in failed:", error);
                 }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("User authenticated:", user.uid);
+                        // Set up real-time listener for reviews
+                        const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
+                        
+                        onSnapshot(
+                            query(reviewsCollectionRef, orderBy('timestamp', 'desc')), 
+                            (snapshot) => {
+                                reviewsList.innerHTML = '';
+                                if (snapshot.empty) {
+                                    reviewsList.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet. Be the first to add one!</p>';
+                                } else {
+                                    snapshot.docs.forEach(doc => {
+                                        const reviewData = doc.data();
+                                        // Check for valid review data before rendering
+                                        if (reviewData && reviewData.name && reviewData.text) {
+                                            const reviewCard = document.createElement('div');
+                                            reviewCard.className = "review-card";
+                                            reviewCard.innerHTML = `
+                                                <button class="delete-button" data-id="${doc.id}"><i class="fas fa-trash-alt"></i></button>
+                                                <div class="review-header">
+                                                    <span class="reviewer-name">${reviewData.name}</span>
+                                                    <div class="star-rating">${createStarIcons(reviewData.rating)}</div>
+                                                </div>
+                                                <p class="review-text">${reviewData.text}</p>
+                                                <div class="review-meta">
+                                                    Source: ${reviewData.platform}
+                                                </div>
+                                            `;
+                                            reviewsList.appendChild(reviewCard);
+                                        }
+                                    });
+                                    
+                                    // Attach event listeners to the new delete buttons
+                                    reviewsList.querySelectorAll('.delete-button').forEach(button => {
+                                        button.addEventListener('click', () => {
+                                            const reviewId = button.getAttribute('data-id');
+                                            deleteReview(reviewId);
+                                        });
+                                    });
+                                }
+                            },
+                            (error) => {
+                                console.error("Firestore onSnapshot error:", error);
+                                reviewsList.innerHTML = '<p style="text-align: center; color: red;">Error loading reviews. Please check the console for details.</p>';
+                            }
+                        );
+
+                        // Add new review submission logic
+                        form.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            
+                            const name = document.getElementById('reviewer-name').value;
+                            const platform = document.getElementById('platform').value;
+                            const rating = parseInt(document.querySelector('input[name="rating"]:checked').value);
+                            const text = document.getElementById('review-text').value;
+
+                            try {
+                                await addDoc(collection(db, `/artifacts/${appId}/public/data/reviews`), {
+                                    name: name,
+                                    platform: platform,
+                                    rating: rating,
+                                    text: text,
+                                    timestamp: serverTimestamp()
+                                });
+                                showStatus("Review added successfully!", true);
+                                form.reset();
+                            } catch (error) {
+                                console.error("Error adding review: ", error);
+                                showStatus("Error adding review. Please try again.", false);
+                            }
+                        });
+
+                    } else {
+                        console.error("Authentication failed. Please check your token or configuration.");
+                        showStatus("Error: Failed to authenticate. Please try refreshing the page.", false);
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                showStatus(`Error: ${error.message}. Check your console.`, false);
             }
-        });
+        }
+        
+        initializeAppAndAuth();
     </script>
 </body>
 </html>
