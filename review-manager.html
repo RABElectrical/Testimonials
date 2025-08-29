@@ -57,6 +57,8 @@
             <p class="mt-2">Loading...</p>
         </div>
         
+        <div id="firebase-status" class="mb-4 text-sm hidden"></div>
+
         <div id="app-content" class="hidden">
             <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Electrical Maintenance Reviews</h1>
             <p class="text-center text-gray-600 mb-8">Your feedback helps us improve! Please leave a review below.</p>
@@ -128,7 +130,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Set debug logging for Firestore
@@ -144,6 +146,7 @@
         const reviewsList = document.getElementById('reviews-list');
         const messageBox = document.getElementById('message-box');
         const userIdSpan = document.getElementById('user-id');
+        const firebaseStatus = document.getElementById('firebase-status');
 
         let db;
         let auth;
@@ -159,58 +162,53 @@
             }, 3000);
         }
 
-        async function initFirebase() {
+        async function initApp() {
             try {
-                // Failsafe: Use a temporary config if the real one is missing.
-                let firebaseConfig;
-                if (__firebase_config && JSON.parse(__firebase_config).projectId) {
-                    firebaseConfig = JSON.parse(__firebase_config);
-                } else {
-                    console.warn("Warning: Firebase config is missing. Using temporary, non-persistent config.");
-                    appContent.innerHTML = `<div class="p-4 text-center bg-yellow-100 text-yellow-700 rounded-lg">
-                        <p>Application is running in temporary mode. Data will not be saved permanently.</p>
-                        <p class="mt-2">Please ensure your environment is configured to provide the Firebase project ID.</p>
-                    </div>`;
-                    loader.classList.add('hidden');
-                    appContent.classList.remove('hidden');
-                    return; // Stop initialization as we cannot connect to the database.
-                }
-
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                if (__initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userIdSpan.textContent = userId;
-                        appContent.classList.remove('hidden');
-                        loader.classList.add('hidden');
-                        listenForReviews();
-                    } else {
-                        // Handle unauthenticated state if needed
-                        console.log("User is signed out.");
-                        loader.classList.add('hidden');
-                    }
-                });
-
-            } catch (e) {
-                console.error("Error initializing Firebase:", e);
+                // Show the main content and hide the loader
+                appContent.classList.remove('hidden');
                 loader.classList.add('hidden');
-                appContent.innerHTML = `<div class="p-4 text-center text-red-500">
-                    <p>Failed to load the application. Please check the console for more details.</p>
-                    <p>Error: ${e.message}</p>
-                </div>`;
+
+                if (__firebase_config && JSON.parse(__firebase_config).projectId) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    if (__initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            userIdSpan.textContent = userId;
+                            listenForReviews();
+                            firebaseStatus.innerHTML = `<p class="p-2 bg-green-100 text-green-700 rounded-lg">Connected to Firebase successfully.</p>`;
+                            firebaseStatus.classList.remove('hidden');
+                        } else {
+                            console.log("User is signed out.");
+                        }
+                    });
+                } else {
+                    console.warn("Warning: Firebase config is missing. Data will not be saved permanently.");
+                    firebaseStatus.innerHTML = `<p class="p-2 bg-yellow-100 text-yellow-700 rounded-lg">Application is in temporary mode. Data will not be saved.</p>`;
+                    firebaseStatus.classList.remove('hidden');
+                    // Ensure reviews list shows a message for non-connected state
+                    reviewsList.innerHTML = `<p class="text-center text-gray-500">Database not connected. Reviews cannot be loaded or saved.</p>`;
+                    db = null;
+                    auth = null;
+                }
+            } catch (e) {
+                console.error("Error during app initialization:", e);
+                firebaseStatus.innerHTML = `<p class="p-2 bg-red-100 text-red-700 rounded-lg">An error occurred. Check the console for details.</p>`;
+                firebaseStatus.classList.remove('hidden');
             }
         }
 
         function listenForReviews() {
+            if (!db) return; // Check if the database is initialized
             try {
                 // The collection path for public data
                 const reviewsRef = collection(db, `artifacts/${__app_id}/public/data/reviews`);
@@ -299,7 +297,7 @@
         });
 
         // Initial setup
-        initFirebase();
+        initApp();
     </script>
 </body>
 </html>
