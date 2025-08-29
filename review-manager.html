@@ -15,10 +15,11 @@
             background-color: #f9f9f9;
             color: #333333;
             margin: 0;
-            padding: 0;
+            padding: 2rem;
             line-height: 1.6;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
         }
@@ -30,9 +31,20 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             max-width: 450px;
+            width: 100%;
             text-align: center;
+            margin-bottom: 2rem;
         }
-        
+
+        .reviews-list-container {
+            background: #fdfdfd;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            max-width: 450px;
+            width: 100%;
+        }
+
         /* Headings */
         .review-funnel-heading {
             color: #15316f;
@@ -146,6 +158,61 @@
         .status-message.error {
             color: red;
         }
+        
+        /* Styles for the new review list */
+        .review-card {
+            background: #ffffff;
+            padding: 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            text-align: left;
+            position: relative;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+            color: #15316f;
+        }
+
+        .review-meta {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        .review-text {
+            color: #555;
+            font-style: italic;
+            margin-bottom: 0;
+        }
+        
+        .delete-button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1rem;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .delete-button:hover {
+            color: #c0392b;
+        }
+
+        .star-rating {
+            color: gold;
+        }
     </style>
 </head>
 <body>
@@ -191,10 +258,19 @@
             <p id="status-message" class="status-message"></p>
         </form>
     </div>
+
+    <div class="reviews-list-container">
+        <h2 class="review-funnel-heading">Existing Reviews</h2>
+        <div id="reviews-list">
+            <!-- Reviews will be dynamically loaded here -->
+            <p style="text-align: center; color: #888;">Loading reviews...</p>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, addDoc, collection, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, addDoc, collection, serverTimestamp, setLogLevel, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Set Firebase log level for debugging
         setLogLevel('debug');
@@ -212,18 +288,71 @@
         // UI Elements
         const form = document.getElementById('review-form');
         const statusMessage = document.getElementById('status-message');
+        const reviewsList = document.getElementById('reviews-list');
 
         function showStatus(message, isSuccess) {
             statusMessage.textContent = message;
             statusMessage.className = `status-message ${isSuccess ? 'success' : 'error'}`;
         }
+
+        function createStarIcons(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<span class="star-rating">${i <= rating ? '★' : '☆'}</span>`;
+            }
+            return stars;
+        }
+
+        async function deleteReview(reviewId) {
+            try {
+                // Get a reference to the specific document by its ID
+                await deleteDoc(doc(db, `/artifacts/${appId}/public/data/reviews`, reviewId));
+                console.log("Review deleted successfully!");
+            } catch (error) {
+                console.error("Error deleting review: ", error);
+            }
+        }
         
-        // This is the key fix. We wrap the button's event listener inside the onAuthStateChanged
-        // listener to ensure the database write operation only happens AFTER the user is authenticated.
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("User authenticated:", user.uid);
+                
+                // Set up real-time listener for reviews
+                const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
+                onSnapshot(query(reviewsCollectionRef), (snapshot) => {
+                    reviewsList.innerHTML = '';
+                    if (snapshot.empty) {
+                        reviewsList.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet. Be the first to add one!</p>';
+                    } else {
+                        snapshot.docs.forEach(doc => {
+                            const reviewData = doc.data();
+                            const reviewCard = document.createElement('div');
+                            reviewCard.className = "review-card";
+                            reviewCard.innerHTML = `
+                                <button class="delete-button" data-id="${doc.id}"><i class="fas fa-trash-alt"></i></button>
+                                <div class="review-header">
+                                    <span class="reviewer-name">${reviewData.name}</span>
+                                    <div class="star-rating">${createStarIcons(reviewData.rating)}</div>
+                                </div>
+                                <p class="review-text">${reviewData.text}</p>
+                                <div class="review-meta">
+                                    Source: ${reviewData.platform}
+                                </div>
+                            `;
+                            reviewsList.appendChild(reviewCard);
+                        });
+                        
+                        // Attach event listeners to the new delete buttons
+                        reviewsList.querySelectorAll('.delete-button').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const reviewId = button.getAttribute('data-id');
+                                deleteReview(reviewId);
+                            });
+                        });
+                    }
+                });
 
+                // Add new review submission logic
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
