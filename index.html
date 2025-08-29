@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Testimonials</title>
+    <title>Customer Testimonials - Live</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Imports the Poppins font from Google Fonts */
@@ -146,7 +146,7 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center py-8">
     <div class="review-funnel-container review-funnel-container--testimonials">
         <!-- Logo at the top -->
         <img src="LOGO.png" alt="Electrical Maintenance Logo" class="review-funnel-logo">
@@ -164,15 +164,15 @@
         <!-- Overall Rating Section -->
         <div id="overall-rating-container" class="text-center" style="margin-top: -.5rem; margin-bottom: 0;">
             <h2 style="font-size:1.4rem; color:#15316f; font-weight:700; margin-bottom: 0.5rem;">Overall Rating</h2>
-            <div id="overall-rating" style="font-size:2.5rem; font-weight:700; color:#15316f;">0.0</div>
-            <div id="overall-stars" class="star-rating" style="font-size:1.5rem; margin-top:0.25rem;">☆☆☆☆☆</div>
-            <p id="total-reviews" style="font-size:0.9rem; color:#888;">(0 reviews)</p>
+            <div id="overall-rating" style="font-size:2.5rem; font-weight:700; color:#15316f;">...</div>
+            <div id="overall-stars" class="star-rating" style="font-size:1.5rem;">...</div>
+            <p id="total-reviews" style="font-size:0.9rem; color:#888;">...</p>
         </div>
 
         <!-- Reviews Section -->
         <div id="reviews-container">
             <!-- Reviews will be dynamically added here by script -->
-            <p id="no-reviews-message" style="text-align: center; color: #888; font-style: italic;">No reviews to display yet. Be the first to add one!</p>
+            <p style="text-align: center; color: #888;">Loading reviews...</p>
         </div>
         
         <hr>
@@ -184,10 +184,11 @@
             </a>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Set Firebase log level for debugging
         setLogLevel('debug');
@@ -197,14 +198,17 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        // UI elements
+        const reviewsContainer = document.getElementById('reviews-container');
+        const overallRatingDiv = document.getElementById('overall-rating');
+        const overallStarsDiv = document.getElementById('overall-stars');
+        const totalReviewsP = document.getElementById('total-reviews');
 
-        let unsubscribe = null; // Variable to store the unsubscribe function for the listener
-
+        let db;
+        let auth;
+        
         function createStarIcons(rating) {
+            // Function to create star icons for a given rating
             const roundedRating = Math.round(rating);
             let stars = '';
             for (let i = 1; i <= 5; i++) {
@@ -213,89 +217,86 @@
             return stars;
         }
 
-        // The core logic is now wrapped in the onAuthStateChanged listener.
-        // This ensures the Firestore query is only ever run when a user is confirmed to be authenticated,
-        // preventing the 'permission-denied' error.
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // A user is signed in (either from the custom token or anonymously).
-                console.log("User authenticated:", user.uid);
+        async function initializeAppAndAuth() {
+            try {
+                // Initialize Firebase
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-                // Unsubscribe from previous listener if it exists
-                if (unsubscribe) {
-                    unsubscribe();
-                }
-
-                const reviewsContainer = document.getElementById('reviews-container');
-                const overallRatingElement = document.getElementById('overall-rating');
-                const overallStarsElement = document.getElementById('overall-stars');
-                const totalReviewsElement = document.getElementById('total-reviews');
-                const noReviewsMessage = document.getElementById('no-reviews-message');
-
-                const reviewsQuery = query(collection(db, `/artifacts/${appId}/public/data/reviews`));
-
-                // Set up the real-time listener
-                unsubscribe = onSnapshot(reviewsQuery, (querySnapshot) => {
-                    const reviews = [];
-                    let totalRating = 0;
-                    let reviewCount = 0;
-
-                    querySnapshot.forEach((doc) => {
-                        const review = doc.data();
-                        reviews.push(review);
-                        totalRating += review.rating;
-                        reviewCount++;
-                    });
-
-                    // Sort reviews by timestamp (assuming it's a valid property)
-                    reviews.sort((a, b) => {
-                        const aTimestamp = a.timestamp?.seconds || 0;
-                        const bTimestamp = b.timestamp?.seconds || 0;
-                        return bTimestamp - aTimestamp;
-                    });
-
-                    if (reviewCount > 0) {
-                        noReviewsMessage.style.display = 'none';
-                        const averageRating = (totalRating / reviewCount).toFixed(1);
-                        overallRatingElement.textContent = averageRating;
-                        overallStarsElement.innerHTML = createStarIcons(averageRating);
-                        totalReviewsElement.textContent = `(${reviewCount} reviews)`;
-                    } else {
-                        noReviewsMessage.style.display = 'block';
-                        overallRatingElement.textContent = '0.0';
-                        overallStarsElement.innerHTML = '☆☆☆☆☆';
-                        totalReviewsElement.textContent = '(0 reviews)';
-                    }
-
-                    reviewsContainer.innerHTML = '';
-                    reviews.forEach(review => {
-                        const reviewCard = document.createElement('div');
-                        reviewCard.className = "testimonial-card";
-                        reviewCard.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                                <span style="font-weight:700; color:#15316f;">${review.name}</span>
-                                <div class="star-rating" style="font-size:1.2rem;">
-                                    ${createStarIcons(review.rating)}
-                                </div>
-                            </div>
-                            <p class="review-text">${review.text}</p>
-                            <div class="review-meta">
-                                Source: ${review.platform}
-                            </div>
-                        `;
-                        reviewsContainer.appendChild(reviewCard);
-                    });
-                });
-            } else {
-                // No user is signed in, sign in anonymously.
-                console.log("No user authenticated. Signing in anonymously...");
-                try {
+                // Sign in with custom token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
                     await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Anonymous sign-in failed:", error);
                 }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("User authenticated:", user.uid);
+                        // Set up real-time listener for reviews
+                        const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
+                        
+                        onSnapshot(
+                            query(reviewsCollectionRef, orderBy('timestamp', 'desc')), 
+                            (snapshot) => {
+                                reviewsContainer.innerHTML = ''; // Clear previous content
+                                let totalRating = 0;
+                                const totalReviews = snapshot.size;
+
+                                if (snapshot.empty) {
+                                    reviewsContainer.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet.</p>';
+                                    overallRatingDiv.textContent = 'N/A';
+                                    overallStarsDiv.textContent = '☆☆☆☆☆';
+                                    totalReviewsP.textContent = `(0 reviews)`;
+                                } else {
+                                    snapshot.docs.forEach(doc => {
+                                        const reviewData = doc.data();
+                                        // Check for valid review data before rendering
+                                        if (reviewData && reviewData.name && reviewData.text) {
+                                            totalRating += reviewData.rating;
+                                            const reviewCard = document.createElement('div');
+                                            reviewCard.className = "testimonial-card";
+                                            reviewCard.innerHTML = `
+                                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                                    <span style="font-weight:700; color:#15316f;">${reviewData.name}</span>
+                                                    <div class="star-rating" style="font-size:1.2rem;">
+                                                        ${createStarIcons(reviewData.rating)}
+                                                    </div>
+                                                </div>
+                                                <p class="review-text">${reviewData.text}</p>
+                                                <div class="review-meta">
+                                                    Source: ${reviewData.platform}
+                                                </div>
+                                            `;
+                                            reviewsContainer.appendChild(reviewCard);
+                                        }
+                                    });
+
+                                    // Calculate and update overall rating
+                                    const averageRating = totalRating / totalReviews;
+                                    overallRatingDiv.textContent = averageRating.toFixed(1);
+                                    overallStarsDiv.textContent = createStarIcons(averageRating);
+                                    totalReviewsP.textContent = `(${totalReviews} reviews)`;
+                                }
+                            },
+                            (error) => {
+                                console.error("Firestore onSnapshot error:", error);
+                                reviewsContainer.innerHTML = '<p style="text-align: center; color: red;">Error loading reviews. Please check the console for details.</p>';
+                            }
+                        );
+                    } else {
+                        console.error("Authentication failed. Please check your token or configuration.");
+                        reviewsContainer.innerHTML = '<p style="text-align: center; color: red;">Error: Failed to authenticate. Please try refreshing the page.</p>';
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                reviewsContainer.innerHTML = `<p style="text-align: center; color: red;">Error: ${error.message}. Check your console.</p>`;
             }
-        });
+        }
+        
+        initializeAppAndAuth();
     </script>
 </body>
 </html>
