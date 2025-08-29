@@ -145,6 +145,10 @@
                     throw new Error("Firebase config is missing.");
                 }
                 const firebaseConfig = JSON.parse(__firebase_config);
+                // Check if the parsed object has a projectId
+                if (!firebaseConfig.projectId) {
+                    throw new Error("Invalid Firebase config. 'projectId' is missing.");
+                }
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
