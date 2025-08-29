@@ -161,10 +161,10 @@
 
         async function initFirebase() {
             try {
-                // Check for Firebase config. If it's missing, display a helpful error message and exit.
-                if (!__firebase_config) {
+                // Check for a valid Firebase config. If it's missing, display a helpful error message and exit.
+                if (!__firebase_config || JSON.parse(__firebase_config).projectId === undefined) {
                     appContent.innerHTML = `<div class="p-4 text-center text-red-500">
-                        <p>Firebase configuration is missing. Please ensure the environment is configured correctly.</p>
+                        <p>Firebase configuration is missing or invalid. Please ensure the environment is configured correctly.</p>
                         <p>If you're using this page outside of the Canvas environment, you'll need to manually provide your Firebase config in the code.</p>
                     </div>`;
                     loader.classList.add('hidden');
