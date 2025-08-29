@@ -238,25 +238,36 @@
                         const reviewsCollectionRef = collection(db, `/artifacts/${appId}/public/data/reviews`);
                         
                         onSnapshot(
-                            query(reviewsCollectionRef, orderBy('timestamp', 'desc')), 
+                            reviewsCollectionRef, 
                             (snapshot) => {
                                 reviewsContainer.innerHTML = ''; // Clear previous content
                                 let totalRating = 0;
-                                const totalReviews = snapshot.size;
+                                const reviews = [];
+                                snapshot.forEach(doc => {
+                                    const reviewData = doc.data();
+                                    reviews.push(reviewData);
+                                    if (reviewData.rating) {
+                                        totalRating += reviewData.rating;
+                                    }
+                                });
+                                
+                                reviews.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
 
-                                if (snapshot.empty) {
+                                const totalReviews = reviews.length;
+
+                                if (totalReviews === 0) {
                                     reviewsContainer.innerHTML = '<p style="text-align: center; color: #888;">No reviews yet.</p>';
                                     overallRatingDiv.textContent = 'N/A';
                                     overallStarsDiv.textContent = '☆☆☆☆☆';
                                     totalReviewsP.textContent = `(0 reviews)`;
                                 } else {
-                                    snapshot.docs.forEach(doc => {
-                                        const reviewData = doc.data();
+                                    reviews.forEach(reviewData => {
                                         // Check for valid review data before rendering
                                         if (reviewData && reviewData.name && reviewData.text) {
-                                            totalRating += reviewData.rating;
                                             const reviewCard = document.createElement('div');
                                             reviewCard.className = "testimonial-card";
+                                            const date = reviewData.createdAt?.toDate() ? new Date(reviewData.createdAt.toDate()).toLocaleDateString() : 'N/A';
+
                                             reviewCard.innerHTML = `
                                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                                                     <span style="font-weight:700; color:#15316f;">${reviewData.name}</span>
@@ -266,7 +277,7 @@
                                                 </div>
                                                 <p class="review-text">${reviewData.text}</p>
                                                 <div class="review-meta">
-                                                    Source: ${reviewData.platform}
+                                                    Source: ${reviewData.platform} on ${date}
                                                 </div>
                                             `;
                                             reviewsContainer.appendChild(reviewCard);
