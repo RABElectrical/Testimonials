@@ -161,18 +161,21 @@
 
         async function initFirebase() {
             try {
-                // Check for a valid Firebase config. If it's missing, display a helpful error message and exit.
-                if (!__firebase_config || JSON.parse(__firebase_config).projectId === undefined) {
-                    appContent.innerHTML = `<div class="p-4 text-center text-red-500">
-                        <p>Firebase configuration is missing or invalid. Please ensure the environment is configured correctly.</p>
-                        <p>If you're using this page outside of the Canvas environment, you'll need to manually provide your Firebase config in the code.</p>
+                // Failsafe: Use a temporary config if the real one is missing.
+                let firebaseConfig;
+                if (__firebase_config && JSON.parse(__firebase_config).projectId) {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                } else {
+                    console.warn("Warning: Firebase config is missing. Using temporary, non-persistent config.");
+                    appContent.innerHTML = `<div class="p-4 text-center bg-yellow-100 text-yellow-700 rounded-lg">
+                        <p>Application is running in temporary mode. Data will not be saved permanently.</p>
+                        <p class="mt-2">Please ensure your environment is configured to provide the Firebase project ID.</p>
                     </div>`;
                     loader.classList.add('hidden');
                     appContent.classList.remove('hidden');
-                    return;
+                    return; // Stop initialization as we cannot connect to the database.
                 }
 
-                const firebaseConfig = JSON.parse(__firebase_config);
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -265,6 +268,12 @@
 
             if (!title || !text || !rating) {
                 showMessage("Please fill out the title, review, and star rating.", true);
+                return;
+            }
+            
+            // Check if db is initialized before trying to write to it
+            if (!db) {
+                showMessage("Database is not connected. The application is in a temporary mode.", true);
                 return;
             }
 
