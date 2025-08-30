@@ -145,29 +145,30 @@
             background-color: #CC7000;
         }
         
-        /* New styles for the discreet "Add Review" button */
-        .discreet-button {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            background-color: transparent;
-            color: #15316f;
-            border: 2px solid #15316f;
-            padding: 0.5rem 1rem;
+        /* NEW STYLES for the discreet "Add Review" link */
+        .discreet-link {
+            position: fixed; /* Keep it in the same place when scrolling */
+            bottom: 1rem; /* Distance from the bottom of the page */
+            right: 1rem; /* Distance from the right side of the page */
+            background-color: transparent; /* No background color */
+            color: #15316f; /* Default text color */
+            border: none; /* No border for a more subtle look */
+            padding: 0.5rem 1rem; /* Padding around the text */
             border-radius: 8px;
-            text-decoration: none;
+            text-decoration: none; /* Removes the underline from the link */
             font-weight: 700;
-            transition: all 0.2s ease-in-out;
+            font-size: 0.2rem;
+            transition: all 0.2s ease-in-out; /* Smooth transition for hover effect */
             display: flex;
             align-items: center;
         }
 
-        .discreet-button:hover {
-            background-color: #15316f;
-            color: #ffffff;
+        .discreet-link:hover {
+            color: #FF8C00; /* Change text color on hover */
+            text-decoration: underline; /* Add underline on hover for feedback */
         }
 
-        .discreet-button i {
+        .discreet-link i {
             margin-right: 0.5rem;
         }
     </style>
@@ -212,7 +213,7 @@
     </div>
 
     <!-- Discreet "Add Review" button at the bottom right -->
-    <a href="review-manager.html" class="discreet-button">
+    <a href="review-manager.html" class="discreet-link">
         <i class="fas fa-plus"></i> Add Review
     </a>
 
