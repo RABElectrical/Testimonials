@@ -45,7 +45,7 @@
             border-bottom: 2px solid #ddd;
             padding-bottom: 0.5rem;
             margin-top: 2rem;
-            margin-bottom: 0.5rem; /* Reduced margin */
+            margin-bottom: 0.5rem;
         }
         
         .intro-sentence {
@@ -89,14 +89,14 @@
         
         /* Main Contact Us Button (Bottom) */
         .review-links a.main-contact-button {
-            background-color: #FF8C00; /* Orange color */
+            background-color: #FF8C00;
             max-width: 300px;
             padding: 0.8rem 1rem;
             font-size: 1.1rem;
         }
         
         .review-links a.main-contact-button:hover {
-            background-color: #CC7000; /* Darker orange on hover */
+            background-color: #CC7000;
         }
 
         /* Testimonials Card-Specific Styles */
@@ -133,26 +133,52 @@
 
         /* Styling for the new, smaller contact button */
         .subtle-contact-button {
-            background-color: #FF8C00; /* Orange color */
+            background-color: #FF8C00;
             margin-top: 0;
             margin-bottom: 0;
-            padding: 0.2rem 0.4rem; /* Controls the blue area around the text */
-            max-width: 150px; /* Controls the overall width of the button */
-            font-size: 0.9rem; /* Controls the size of the text */
+            padding: 0.2rem 0.4rem;
+            max-width: 150px;
+            font-size: 0.9rem;
         }
 
         .subtle-contact-button:hover {
-            background-color: #CC7000; /* Darker orange on hover */
+            background-color: #CC7000;
+        }
+        
+        /* New styles for the discreet "Add Review" button */
+        .discreet-button {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: transparent;
+            color: #15316f;
+            border: 2px solid #15316f;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+
+        .discreet-button:hover {
+            background-color: #15316f;
+            color: #ffffff;
+        }
+
+        .discreet-button i {
+            margin-right: 0.5rem;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center py-8">
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
     <div class="review-funnel-container review-funnel-container--testimonials">
         <!-- Logo at the top -->
         <img src="LOGO.png" alt="Electrical Maintenance Logo" class="review-funnel-logo">
         <h1 class="review-funnel-heading">Customer Testimonials</h1>
         
-        <!-- New smaller contact button -->
+        <!-- Smaller contact button at the top -->
         <div class="review-links" style="margin-top: 1rem; margin-bottom: 1rem;">
             <a href="contact.html" class="subtle-contact-button">
                 <i class="fas fa-phone"></i> Contact Us
@@ -177,7 +203,7 @@
         
         <hr>
 
-        <!-- Contact Us Button -->
+        <!-- Main Contact Us Button -->
         <div class="review-links">
             <a href="contact.html" class="main-contact-button">
                 <i class="fas fa-phone"></i> Contact Us
@@ -185,10 +211,15 @@
         </div>
     </div>
 
+    <!-- Discreet "Add Review" button at the bottom right -->
+    <a href="review-manager.html" class="discreet-button">
+        <i class="fas fa-plus"></i> Add Review
+    </a>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Set Firebase log level for debugging
         setLogLevel('debug');
