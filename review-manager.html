@@ -56,15 +56,30 @@
             </svg>
             <p class="mt-2">Loading...</p>
         </div>
-        
+
         <div id="firebase-status" class="mb-4 text-sm hidden"></div>
 
         <div id="app-content" class="hidden">
             <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Electrical Maintenance Reviews</h1>
             <p class="text-center text-gray-600 mb-8">Your feedback helps us improve! Please leave a review below.</p>
+            
+            <!-- Admin Login Form -->
+            <div id="admin-login-card" class="review-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">Admin Access</h2>
+                <form id="admin-login-form" class="space-y-4">
+                    <div>
+                        <label for="admin-password" class="block text-sm font-medium text-gray-700">Enter Admin Password</label>
+                        <input type="password" id="admin-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </div>
+                    <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Unlock Review Form
+                    </button>
+                    <div id="login-message-box" class="mt-4 p-3 rounded-md text-sm text-center hidden"></div>
+                </form>
+            </div>
 
-            <!-- Review Submission Form -->
-            <div class="review-card">
+            <!-- Review Submission Form (initially hidden) -->
+            <div id="review-submission-card" class="review-card hidden">
                 <h2 class="text-2xl font-semibold mb-4 text-gray-800">Leave a Review</h2>
                 <form id="review-form" class="space-y-4">
                     <div>
@@ -140,11 +155,17 @@
         const __firebase_config = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
         const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
 
+        const ADMIN_PASSWORD = "admin123"; // CHANGE THIS PASSWORD!
+
         const loader = document.getElementById('loader');
         const appContent = document.getElementById('app-content');
+        const adminLoginForm = document.getElementById('admin-login-form');
+        const adminLoginCard = document.getElementById('admin-login-card');
+        const reviewSubmissionCard = document.getElementById('review-submission-card');
         const reviewForm = document.getElementById('review-form');
         const reviewsList = document.getElementById('reviews-list');
         const messageBox = document.getElementById('message-box');
+        const loginMessageBox = document.getElementById('login-message-box');
         const userIdSpan = document.getElementById('user-id');
         const firebaseStatus = document.getElementById('firebase-status');
 
@@ -159,6 +180,16 @@
             setTimeout(() => {
                 messageBox.textContent = '';
                 messageBox.className = 'hidden';
+            }, 3000);
+        }
+
+        // Display a message for the admin login form
+        function showLoginMessage(text, isError = false) {
+            loginMessageBox.textContent = text;
+            loginMessageBox.className = `mt-4 p-3 rounded-md text-sm text-center block ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+            setTimeout(() => {
+                loginMessageBox.textContent = '';
+                loginMessageBox.className = 'hidden';
             }, 3000);
         }
 
@@ -256,6 +287,22 @@
             }
         }
 
+        // Handle the admin password submission
+        adminLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const passwordInput = document.getElementById('admin-password');
+            const password = passwordInput.value;
+
+            if (password === ADMIN_PASSWORD) {
+                adminLoginCard.classList.add('hidden');
+                reviewSubmissionCard.classList.remove('hidden');
+                showLoginMessage("Access granted!", false);
+            } else {
+                showLoginMessage("Incorrect password. Please try again.", true);
+            }
+        });
+
+        // Handle the review submission
         reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('review-title').value.trim();
